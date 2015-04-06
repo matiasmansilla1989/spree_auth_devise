@@ -12,12 +12,26 @@ module Spree
 
     has_many :orders
 
+    ##### Admin User #####
+    has_one     :store
+    belongs_to  :customer_store, :class_name => 'Spree::Store', :foreign_key => 'store_customer_id'
+    has_many    :products
+    has_many    :option_types
+    has_many    :properties
+    has_many    :taxonomies
+    has_many    :taxons
+    ##### Admin User #####
+
     before_validation :set_login
 
     users_table_name = User.table_name
     roles_table_name = Role.table_name
 
-    scope :admin, -> { includes(:spree_roles).where("#{roles_table_name}.name" => "admin") }
+    scope :admin,   -> { includes(:spree_roles).where("#{roles_table_name}.name" => "admin") }
+    scope :admins,  -> { joins(:spree_roles).where('spree_roles.name == "admin"') }
+    scope :only_normal_users,  -> { joins(:spree_roles).where(
+      'spree_roles.name == "user" AND spree_roles.name != "admin"') }
+    scope :from_current_store,  -> (store_id) { only_normal_users.where("store_customer_id == ?", store_id) }
 
     def self.admin_created?
       User.admin.count > 0

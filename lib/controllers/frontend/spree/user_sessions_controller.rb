@@ -1,5 +1,6 @@
 class Spree::UserSessionsController < Devise::SessionsController
   helper 'spree/base', 'spree/store'
+  # skip_before_filter :verify_authenticity_token, :only => :create
   if Spree::Auth::Engine.dash_available?
     helper 'spree/analytics'
   end
@@ -14,6 +15,7 @@ class Spree::UserSessionsController < Devise::SessionsController
   ssl_allowed :login_bar
 
   def create
+    
     authenticate_spree_user!
 
     if spree_user_signed_in?

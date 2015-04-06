@@ -1,4 +1,5 @@
 class Spree::Admin::UserSessionsController < Devise::SessionsController
+  skip_before_filter :verify_authenticity_token, :only => :create
   helper 'spree/base'
 
   include Spree::Core::ControllerHelpers::Auth
@@ -10,16 +11,23 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
   helper 'spree/admin/tables'
   layout 'spree/layouts/admin'
 
+  skip_before_filter :require_no_authentication, :only => [:create]
+
   ssl_required :new, :create, :destroy, :update
 
   def create
+
     authenticate_spree_user!
 
     if spree_user_signed_in?
       respond_to do |format|
         format.html {
-          flash[:success] = Spree.t(:logged_in_succesfully)
-          redirect_back_or_default(after_sign_in_path_for(spree_current_user))
+          if params[:spree_user][:social_square].blank?
+            flash[:success] = Spree.t(:logged_in_succesfully)
+            redirect_back_or_default(after_sign_in_path_for(spree_current_user))
+          else
+            redirect_to '/admin/orders'
+          end
         }
         format.js {
           user = resource.record
