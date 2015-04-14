@@ -28,10 +28,10 @@ module Spree
     roles_table_name = Role.table_name
 
     scope :admin,   -> { includes(:spree_roles).where("#{roles_table_name}.name" => "admin") }
-    scope :admins,  -> { joins(:spree_roles).where('spree_roles.name == "admin"') }
+    scope :admins,  -> { joins(:spree_roles).where('spree_roles.name = "admin"') }
     scope :only_normal_users,  -> { joins(:spree_roles).where(
-      'spree_roles.name == "user" AND spree_roles.name != "admin"') }
-    scope :from_current_store,  -> (store_id) { only_normal_users.where("store_customer_id == ?", store_id) }
+      'spree_roles.name != ?', "admin") }
+    scope :from_current_store,  -> (store_id) { only_normal_users.where("store_customer_id = ?", store_id) }
 
     def self.admin_created?
       User.admin.count > 0
