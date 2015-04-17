@@ -13,13 +13,9 @@ module Spree
     has_many :orders
 
     ##### Admin User #####
-    has_one     :store
+    belongs_to  :admin_store, :class_name => 'Spree::Store', :foreign_key => 'store_admin_id'
     belongs_to  :customer_store, :class_name => 'Spree::Store', :foreign_key => 'store_customer_id'
     has_many    :products
-    has_many    :option_types
-    has_many    :properties
-    has_many    :taxonomies
-    has_many    :taxons
     ##### Admin User #####
 
     before_validation :set_login
@@ -39,6 +35,10 @@ module Spree
 
     def admin?
       has_spree_role?('admin')
+    end
+
+    def customer?
+      has_spree_role?('user')
     end
 
     protected

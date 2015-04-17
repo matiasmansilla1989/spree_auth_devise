@@ -24,6 +24,8 @@ class Spree::UserRegistrationsController < Devise::RegistrationsController
   # POST /resource/sign_up
   def create
     @user = build_resource(spree_user_params)
+    @user.spree_roles << Spree::Role.find_by(name: 'user')
+    @user.customer_store = current_store
     if resource.save
       set_flash_message(:notice, :signed_up)
       sign_in(:spree_user, @user)
