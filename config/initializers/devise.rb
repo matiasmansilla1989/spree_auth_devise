@@ -20,7 +20,7 @@ Devise.setup do |config|
   # authenticating an user, both parameters are required. Remember that those
   # parameters are used only when authenticating and not when retrieving from
   # session. If you need permissions, you should implement that in a before filter.
-  # config.authentication_keys = [ :email ]
+  config.authentication_keys = [ :email, :subdomain ]
 
   # Tell if authentication through request.params is enabled. True by default.
   # config.params_authenticatable = true
@@ -134,4 +134,13 @@ Devise.setup do |config|
   config.sign_out_via = :get
 
   config.case_insensitive_keys = [:email]
+
+  config.warden do |manager|
+    manager.strategies.add(:password, Devise::Strategies::Password)
+    manager.default_strategies(:scope => :spree_user).unshift :password
+  end
+
+  # config.warden do |manager| 
+  #    manager.default_strategies(:scope => :spree_user).unshift :subdomain_strategy 
+  # end 
 end

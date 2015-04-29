@@ -4,21 +4,22 @@ module Spree
     include UserPaymentSource
 
     devise :database_authenticatable, :registerable, :recoverable,
-           :rememberable, :trackable, :validatable, :encryptable, :encryptor => 'authlogic_sha512'
+           :rememberable, :trackable, :encryptable, 
+           :encryptor => 'authlogic_sha512', request_keys: [:subdomain]
+
     devise :confirmable if Spree::Auth::Config[:confirmable]
 
     acts_as_paranoid
-    after_destroy :scramble_email_and_password
+    # after_destroy :scramble_email_and_password
 
     has_many :orders
 
     ##### Admin User #####
     belongs_to  :admin_store, :class_name => 'Spree::Store', :foreign_key => 'store_admin_id'
     belongs_to  :customer_store, :class_name => 'Spree::Store', :foreign_key => 'store_customer_id'
+    belongs_to  :store, :class_name => 'Spree::Store', :foreign_key => 'store_id'
     has_many    :products
     ##### Admin User #####
-
-    before_validation :set_login
 
     users_table_name = User.table_name
     roles_table_name = Role.table_name
@@ -28,6 +29,10 @@ module Spree
     scope :only_normal_users,  -> { joins(:spree_roles).where(
       'spree_roles.name != ?', "admin") }
     scope :from_current_store,  -> (store_id) { only_normal_users.where("store_customer_id = ?", store_id) }
+
+    validates :email, presence: true
+    validates :email, :uniqueness => {:scope => [:store_id]}
+    validates :store_id, presence: true
 
     def self.admin_created?
       User.admin.count > 0
@@ -46,19 +51,6 @@ module Spree
         !persisted? || password.present? || password_confirmation.present?
       end
 
-    private
 
-      def set_login
-        # for now force login to be same as email, eventually we will make this configurable, etc.
-        self.login ||= self.email if self.email
-      end
-
-      def scramble_email_and_password
-        self.email = SecureRandom.uuid + "@example.net"
-        self.login = self.email
-        self.password = SecureRandom.hex(8)
-        self.password_confirmation = self.password
-        self.save
-      end
   end
 end

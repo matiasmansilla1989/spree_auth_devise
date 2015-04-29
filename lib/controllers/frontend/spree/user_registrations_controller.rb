@@ -26,6 +26,8 @@ class Spree::UserRegistrationsController < Devise::RegistrationsController
     @user = build_resource(spree_user_params)
     @user.spree_roles << Spree::Role.find_by(name: 'user')
     @user.customer_store = current_store
+    @user.store = current_store
+    @user.subdomain = current_store.subdomain
     if resource.save
       set_flash_message(:notice, :signed_up)
       sign_in(:spree_user, @user)

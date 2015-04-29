@@ -17,40 +17,26 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
 
   def create
 
-    if current_store.admins.where(email: params[:spree_user][:email]).present?
+    authenticate_spree_user!
 
-      authenticate_spree_user!
-
-      if spree_user_signed_in?
-        respond_to do |format|
-          format.html {
-            if params[:spree_user][:social_square].blank?
-              flash[:success] = Spree.t(:logged_in_succesfully)
-              redirect_back_or_default(after_sign_in_path_for(spree_current_user))
-            else
-              redirect_to '/admin/orders'
-            end
-          }
-          format.js {
-            user = resource.record
-            render :json => {:ship_address => user.ship_address, :bill_address => user.bill_address}.to_json
-          }
-        end
-      else
-        flash.now[:error] = t('devise.failure.invalid')
-        render :new
-      end
-    else
-
+    if spree_user_signed_in?
       respond_to do |format|
         format.html {
-          flash.now[:error] = 'Your user is not present in this store'
-          render :new
+          if params[:spree_user][:social_square].blank?
+            flash[:success] = Spree.t(:logged_in_succesfully)
+            redirect_back_or_default(after_sign_in_path_for(spree_current_user))
+          else
+            redirect_to '/admin/orders'
+          end
         }
         format.js {
-          render :json => { error: 'Your user is not present in this store' }, status: :unprocessable_entity
+          user = resource.record
+          render :json => {:ship_address => user.ship_address, :bill_address => user.bill_address}.to_json
         }
       end
+    else
+      flash.now[:error] = t('devise.failure.invalid')
+      render :new
     end
   end
 
